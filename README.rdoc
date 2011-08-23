@@ -1,0 +1,8 @@
+== Rails Mail Preview
+
+A Rails 3 plugin gem to intercept emails being sent and send a NSDistributedNotification so other Cocoa based apps can listen for the notification.
+
+=== Usage
+
+The only known app that listens for these notifications is called: "RailsMailPreview"
+
