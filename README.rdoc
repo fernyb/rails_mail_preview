@@ -4,5 +4,5 @@ A Rails 3 plugin gem to intercept emails being sent and send a NSDistributedNoti
 
 === Usage
 
-The only known app that listens for these notifications is called: "RailsMailPreview"
+The only known app that listens for these notifications is called "RailsMailPreview" which I also wrote.
 
