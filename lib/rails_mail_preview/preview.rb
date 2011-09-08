@@ -16,7 +16,7 @@ module RailsMailPreview
         def smtp_intercept_setup
           Net::SMTP.class_eval do
             alias_method :orig_data, :data
-            def data(msgstr=nil, &block)
+            def data(mail=nil, &block)
               notification = FBDistributedNotification.new
               notification.postNotificationName("RailsMailPreview.email", object: mail.encoded.to_lf)
               # orig_data(msgstr, &block)
