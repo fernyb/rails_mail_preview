@@ -7,37 +7,19 @@ module RailsMailPreview
       extend ActiveSupport::Concern
 
       included do |sender|
-        if sender.respond_to?("#{self.delivery_method}_intercept_setup")
-          sender.send("#{self.delivery_method}_intercept_setup")
+        sender.class_eval do
+          alias_method :orig_mail, :mail
+          def mail(headers, &block)
+            m = orig_mail(headers, &block)
+            if m.class.to_s == "Mail::Message"
+              notification = ::FBDistributedNotification.new
+              notification.postNotificationName("RailsMailPreview.email", object: m.encoded.to_lf)
+            end
+            m
+          end
         end
       end
 
-      module ClassMethods
-        def smtp_intercept_setup
-          Net::SMTP.class_eval do
-            alias_method :orig_data, :data
-            def data(mail=nil, &block)
-              notification = FBDistributedNotification.new
-              notification.postNotificationName("RailsMailPreview.email", object: mail.encoded.to_lf)
-              # orig_data(msgstr, &block)
-            end
-          end
-        end
-
-        def sendmail_intercept_setup
-          Mail::Sendmail.class_eval do
-            class << self
-              alias_method :orig_call, :call
-              def call(path, arguments, destinations, mail)
-                notification = FBDistributedNotification.new
-                notification.postNotificationName("RailsMailPreview.email", object: mail.encoded.to_lf)
-                #orig_call(ath, arguments, destinations, mail)
-              end
-            end
-          end
-        end
-      end # => ClassMethods
-
     end # Glue
   end # Preview
-end 
+end

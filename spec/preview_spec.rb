@@ -1,50 +1,47 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
-require 'net/smtp'
 
 describe RailsMailPreview::Preview::Glue do
-  describe "ClassMethods" do
     before do
       mailer = Class.new do
         class << self
           attr_accessor :delivery_method
         end
-        include RailsMailPreview::Preview::Glue
-      end
-      @mailer = mailer.new
-    end 
 
-    it "responds to smtp_intercept_setup" do
-      @mailer.class.should respond_to(:smtp_intercept_setup)
-    end
-
-    it "responds to sendmail_intercept_setup" do
-      @mailer.class.should respond_to(:sendmail_intercept_setup)
-    end
-  end
-
-  describe "*_intercept_setup" do
-    before do
-      @mailerClass = Class.new do
-        class << self
-          attr_accessor :delivery_method
+        def mail(headers, &block)
+          true
         end
       end
+      mailer.send(:include, RailsMailPreview::Preview::Glue)
+
+      @mailer = mailer.new
     end
 
-    it "should call smtp_intercept_setup" do
-      @mailerClass.delivery_method = :smtp
-      @mailerClass.should_receive(:smtp_intercept_setup)
-      @mailerClass.class_eval do
-        include RailsMailPreview::Preview::Glue
-      end
+    it "should return true" do
+      @mailer.mail("hello").should be_true
     end
 
-    it "should call sendmail_intercept_setup" do
-      @mailerClass.delivery_method = :sendmail
-      @mailerClass.should_receive(:sendmail_intercept_setup)
-      @mailerClass.class_eval do
-        include RailsMailPreview::Preview::Glue
-      end
+    let :message do
+      message = Struct.new(:class).new("Mail::Message")
+      message.stub(:to_lf).and_return("mail message")
+      message.stub(:encoded).and_return(message)
+      message
     end
-  end
+
+    it "sends postNotificationName" do
+      notify = mock("FBDistributedNotification")
+      notify.should_receive(:postNotificationName).with("RailsMailPreview.email", object: "mail message")
+
+      notification = FBDistributedNotification.stub(:new).and_return(notify)
+
+      @mailer.stub(:orig_mail).and_return(message)
+      @mailer.mail("headers").should be_true
+    end
+
+    it "does not sends postNotificationName" do
+      FBDistributedNotification.should_not_receive(:new)
+      message.stub(:class).and_return("NotMessage")
+
+      @mailer.stub(:orig_mail).and_return(message)
+      @mailer.mail("headers").should be_true
+    end
 end
