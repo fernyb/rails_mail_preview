@@ -10,6 +10,7 @@ Gem::Specification.new do |s|
   s.homepage    = ""
   s.summary     = %q{A Rails plugin gem to intercept emails in development and preview them in RailsMailPreview.}
   s.description = %q{A Rails plugin gem to intercept emails in development and preview them in RailsMailPreview to get an idea of what it will look like when it's sent in production.}
+  s.date        = "2012-05-11"
 
   s.rubyforge_project = "rails_mail_preview"
 
